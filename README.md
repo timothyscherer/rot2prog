@@ -111,7 +111,7 @@ def __init__(self, port):
 
 The file `rot2prog_sim.py` is a script designed to simulate the ROT2Prog hardware interface. In order to use this script for testing, it must be connected to a serial port as well. There are two approaches to connecting the respective serial ports for `rot2prog.py` and `rot2prog_sim.py`:
 
-1. Software Implementation: Use a free tool such as the [Virtual COM Port Driver](https://www.virtual-serial-port.org/) or [Free Virtual Serial Ports](https://freevirtualserialports.com/) to connect two virtual ports
+1. Software Implementation: Use a free tool such as [Free Virtual Serial Ports](https://freevirtualserialports.com/) to connect two virtual ports
 2. Hardware Implementation: Use a male-male USB cable connected to two physical ports of the host
 
 > NOTE: Start the simulator `rot2prog_sim.py` first
