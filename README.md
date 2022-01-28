@@ -1,6 +1,6 @@
 # ROT2Prog
 
-This is a control interface for the [Alfa ROT2Prog Controller](http://alfaradio.ca/docs/Manuals/RAS/Alfa_ROT2Prog_Controller-28March2019-Master.pdf).
+This is a python interface to the [Alfa ROT2Prog Controller](http://alfaradio.ca/docs/Manuals/RAS/Alfa_ROT2Prog_Controller-28March2019-Master.pdf).
 
 - The SPID protocol supports 3 commands:
 	+ **STOP**: Stops the rotator in its current position.
