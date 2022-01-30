@@ -1,3 +1,4 @@
 dist
 rot2prog.egg-info
 __pycache__
+.venv

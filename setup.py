@@ -1,3 +1,21 @@
+'''
+Build and upload to PyPi:
+
+python -m venv .venv
+".venv/Scripts/activate"
+pip install --upgrade pip
+pip install pdoc3
+pip install build
+pip install twine
+
+**update the version number**
+
+cd src
+pdoc rot2prog --html -f -o docs
+cd ..
+python -m build
+twine upload dist/*
+'''
 import setuptools
 
 with open("README.md", "r", encoding="utf-8") as fh:

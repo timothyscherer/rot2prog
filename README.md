@@ -9,6 +9,7 @@ This package is responsible for implementing the serial [protocol](#protocol) to
 - [Getting Started](#getting-started)
 	+ [Installation](#installation)
 	+ [Usage](#usage)
+		* [API](https://htmlpreview.github.io/?https://github.com/tj-scherer/rot2prog/blob/master/docs/rot2prog/index.html)
 	+ [Simulation](#simulation)
 - [Protocol](#protocol)
 	+ [Command Packet](#command-packet)
@@ -52,7 +53,7 @@ This package was developed using Python `3.10.2`, and has not yet been tested wi
 	rot = rot2prog.ROT2Prog('COM1')
 	```
 
-	> NOTE: For more information, reference the [rot2prog API](https://github.com/tj-scherer/rot2prog/docs/rot2prog) in `/docs/rot2prog`.
+	> NOTE: For more information, reference the [API](https://htmlpreview.github.io/?https://github.com/tj-scherer/rot2prog/blob/master/docs/rot2prog/index.html) in `/docs/rot2prog`.
 
 2. Standalone
 
