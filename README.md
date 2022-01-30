@@ -1,6 +1,84 @@
 # ROT2Prog
 
-This is a python interface to the [Alfa ROT2Prog Controller](http://alfaradio.ca/docs/Manuals/RAS/Alfa_ROT2Prog_Controller-28March2019-Master.pdf).
+This is a python interface to the [Alfa ROT2Prog Controller](http://alfaradio.ca/docs/Manuals/RAS/Alfa_ROT2Prog_Controller-28March2019-Master.pdf). The ROT2Prog is an electronic controller used for turning rotators. The Controller may be connected to one Azimuth and Elevation rotator and operates with direct current motors. The ROT2Prog is designed to work with either an Alfa RAS or BIGRAS or a combination of one azimuth rotator RAU, RAK and a REAL rotator.
+
+This package is responsible for implementing the serial [protocol](#protocol) to interact with the ROT2Prog controller. There is also a [simulation model](#simulation) of the ROT2Prog controller included in the package, which can be used for testing when hardware is not available.
+
+### Contents
+
+- [Getting Started](#getting-started)
+	+ [Installation](#installation)
+	+ [Usage](#usage)
+	+ [Simulation](#simulation)
+- [Protocol](#protocol)
+	+ [Command Packet](#command-packet)
+	+ [Response Packet](#response-packet)
+	+ [Degrees Per Pulse](#degrees-per-pulse)
+	+ [Stop Command](#stop-command)
+		* [Example](#stop-command-example)
+	+ [Status Command](#status-command)
+		* [Example](#status-command-example)
+	+ [Set Command](#set-command)
+		* [Example](#set-command-example)
+
+# Getting Started
+
+If you intend to use this package with hardware:
+
+1. Press setup key `S` until `PS` is displayed on the far left screen of the controller.
+2. Use the `<` `>` keys to set the value (to the right of `PS`) to `SP`.
+3. Press the function key `F` until `A` is displayed on the far left screen of the controller.
+4. Congratulations! Your ROT2Prog will now respond to SPID commands.
+
+> NOTE: The hardware is not required for testing, see [Simulation](#simulation).
+
+### Installation
+
+The `rot2prog` package is published on PyPi and can be installed in the terminal.
+
+```
+pip install rot2prog
+```
+
+This package was developed using Python `3.10.2`, and has not yet been tested with earlier releases of Python. If using an earlier version of Python, it is recommended to proceed with caution, running the [simulation](#simulation) and [standalone script](#usage) together to exercise all commands.
+
+### Usage
+
+1. Importing
+
+	```python
+	import rot2prog
+
+	rot = rot2prog.ROT2Prog('COM1')
+	```
+
+	> NOTE: For more information, reference the [rot2prog API](https://github.com/tj-scherer/rot2prog/docs/rot2prog) in `/docs/rot2prog`.
+
+2. Standalone
+
+	```
+	python -m rot2prog.utils.run
+	```
+
+	> NOTE: The standalone mode offers direct access to the `stop`, `status`, and `set` commands, allowing the hardware to be controlled directly from the terminal.
+
+### Simulation
+
+Begin by establishing a connection between the two desired ports:
+
+1. Use a tool such as [Free Virtual Serial Ports](https://freevirtualserialports.com/) to connect two virtual ports of the same host.
+2. Use a male-male USB cable connected to two physical ports of the same host.
+3. Use a male-male USB cable connected to two physical ports on different hosts. In this case, each host must run its own software to communicate.
+
+```
+python -m rot2prog.utils.sim
+```
+
+> NOTE: The simulator's serial connection should be established first.
+
+> NOTE: The simulator does not perfectly match real-world behavior in regard to executing commands. The real system cannot move to a new position instantaneously, whereas the simulator currently does.
+
+# Protocol
 
 - The SPID protocol supports 3 commands:
 	+ **STOP**: Stops the rotator in its current position.
@@ -13,120 +91,6 @@ This is a python interface to the [Alfa ROT2Prog Controller](http://alfaradio.ca
 	+ `1 stop bit`
 - All commands are issued as 13 byte packets.
 - All responses are received as 12 byte packets.
-
-### Contents
-
-- [Setup](#setup)
-	+ [Hardware](#hardware-setup)
-	+ [Software](#software-setup)
-- [Usage](#usage)
-	+ [Dependencies](#dependencies)
-	+ [Simulation](#simulation)
-	+ [Implementation](#implementation)
-- [Protocol](#protocol)
-	+ [Command Packet](#command-packet)
-	+ [Response Packet](#response-packet)
-	+ [Degrees Per Pulse](#degrees-per-pulse)
-	+ [Stop Command](#stop-command)
-		* [Example](#stop-command-example)
-	+ [Status Command](#status-command)
-		* [Example](#status-command-example)
-	+ [Set Command](#set-command)
-		* [Example](#set-command-example)
-
-# Setup
-
-### Hardware Setup
-
-1. Press setup key `S` until `PS` is displayed on the far left screen of the controller.
-2. Use the `<` `>` keys to set the value (to the right of `PS`) to `SP`.
-3. Press the function key `F` until `A` is displayed on the far left screen of the controller.
-4. Congratulations! Your ROT2Prog will now respond to SPID commands.
-
-### Software Setup
-
-1. Create a virtual environment and install dependencies.
-
-	Windows:
-	
-	```sh
-	python -m venv .venv
-	".venv/Scripts/activate"
-	python -m pip install --upgrade pip
-	pip install -r requirements.txt
-	```
-	
-	Unix and MacOS:
-
-	```sh
-	python -m venv .venv
-	source .venv/bin/activate
-	python -m pip install --upgrade pip
-	pip install -r requirements.txt
-	```
-
-2. Run scripts (see [Usage](#usage)).
-3. Deactivate the virtual environment.
-
-	```sh
-	deactivate
-	```
-
-	> This step is only necessary when you would like to use the terminal for something else.
-
-# Usage
-
-The file `rot2prog.py` contains the class definition `rot2prog` with the following methods:
-
-```python
-def __init__(self, port):
-	# opens serial port
-	self.status()
-
-def status(self):
-	# send status command
-	return [az, el]
-	# 	az: azimuth angle
-	# 	el: elevation angle
-
-def stop(self):
-	# send stop command
-	return [az, el]
-	# 	az: current azimuth angle
-	# 	el: current elevation angle
-
-def set(self, az, el):
-	# send set command
-	# 	az: new azimuth angle
-	# 	el: new elevation angle
-```
-
-These methods are used to send commands and receive responses. As shown below, the class constructor requires the serial port to be specified to connect to the simulator or physical controller.
-
-```python
-def __init__(self, port):
-```
-
-### Simulation
-
-The file `rot2prog_sim.py` is a script designed to simulate the ROT2Prog hardware interface. In order to use this script for testing, it must be connected to a serial port as well. There are two approaches to connecting the respective serial ports for `rot2prog.py` and `rot2prog_sim.py`:
-
-1. Software Implementation: Use a free tool such as [Free Virtual Serial Ports](https://freevirtualserialports.com/) to connect two virtual ports
-2. Hardware Implementation: Use a male-male USB cable connected to two physical ports of the host
-
-> NOTE: Start the simulator `rot2prog_sim.py` first
-
-### Implementation
-
-The file `rot2prog.py` can be run independently for testing, but it is most practical to use it as part of a larger design. This is as simple as calling the constructor and passing in the name of the serial port where the hardware is connected. An example of this instantiation and usage is shown below:
-
-```python
-rot = rot2prog('COM1')
-rot.test()
-status = rot.status()
-```
-
-# Protocol
 
 ### Command Packet
 
