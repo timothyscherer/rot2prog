@@ -160,11 +160,11 @@ class ROT2Prog:
 		# make sure the inputs are within bounds and correct violations
 		if(az > self.max_az):
 			while(az > self.max_az):
-				az -= 360
+				az -= self.max_az
 			logging.warning('Azimuth corrected to: ' + str(round(float(az), 2)))
 		if(az < self.min_az):
 			while(az < self.min_az):
-				az += 360
+				az += self.min_az
 			logging.warning('Azimuth corrected to: ' + str(round(float(az), 2)))
 
 		if(el > self.max_el):
