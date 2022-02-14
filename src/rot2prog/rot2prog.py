@@ -16,7 +16,7 @@ class ROT2Prog:
 	    min_el (float): Minimum elevation angle.
 	"""
 
-	_log = None
+	_log = logging.getLogger(__name__)
 	_ser = None
 	_resolution = 1
 
@@ -32,8 +32,6 @@ class ROT2Prog:
 		    port (str): Name of serial port to connect to.
 		    timeout (int, optional): Worst case response time of the controller.
 		"""
-		self._log = logging.getLogger(__name__)
-
 		# open serial port
 		while(self._ser is None):
 			try:
@@ -49,7 +47,7 @@ class ROT2Prog:
 				self._log.error('Connection to serial port failed, retrying in ' + str(timeout) + ' seconds...')
 				time.sleep(timeout)
 
-		self._log.info('ROT2Prog interface opened on ' + str(self._ser.name) + '\n')
+		self._log.info('ROT2Prog interface opened on ' + str(self._ser.name))
 
 		# get resolution from controller
 		self.status()
@@ -63,13 +61,13 @@ class ROT2Prog:
 	def _help(self):
 		"""Displays a help message for standalone commands.
 		"""
-		print('\n##############################')
+		print('##############################')
 		print('# ROT2Prog Interface Commands')
 		print('##############################')
 		print('# stop')
 		print('# status')
 		print('# set [azimuth] [elevation]')
-		print('##############################\n')
+		print('##############################')
 
 	def _send_command(self, cmd):
 		"""Sends a command packet.
@@ -79,7 +77,7 @@ class ROT2Prog:
 		"""
 		self._ser.flush()
 		self._ser.write(bytearray(cmd))
-		self._log.debug('Command packet sent: ' + str(cmd) + '\n')
+		self._log.debug('Command packet sent: ' + str(cmd))
 
 	def _recv_response(self):
 		"""Receives a response packet.
@@ -93,12 +91,12 @@ class ROT2Prog:
 		# attempt to receive 12 bytes (length of response packet)
 		if(len(response_packet) != 12):
 			if(len(response_packet) == 0):
-				self._log.error('Response timed out\n')
+				self._log.error('Response timed out')
 			else:
-				self._log.error('Invalid response packet\n')
+				self._log.error('Invalid response packet')
 			return [0, 0]
 		else:
-			self._log.debug('Response packet received: ' + str(list(response_packet)) + '\n')
+			self._log.debug('Response packet received: ' + str(list(response_packet)))
 
 			# convert from byte values
 			az = (response_packet[1] * 100) + (response_packet[2] * 10) + response_packet[3] + (response_packet[4] / 10) - 360.0
@@ -109,7 +107,7 @@ class ROT2Prog:
 			# check resolution value
 			valid_resolution = [0x1, 0x2, 0x4]
 			if(PH != PV or PH not in valid_resolution):
-				self._log.error('Invalid controller resolution [PH = ' + str(hex(PH)) + ', PV = ' + str(hex(PV)) + ']\n')
+				self._log.error('Invalid controller resolution [PH = ' + str(hex(PH)) + ', PV = ' + str(hex(PV)) + ']')
 			else:
 				self._resolution = PH
 
@@ -120,7 +118,7 @@ class ROT2Prog:
 			self._log.info('# Elevation: ' + str(round(float(el), 2)))
 			self._log.info('# PH: ' + str(PH))
 			self._log.info('# PV: ' + str(PV))
-			self._log.info('##############################\n')
+			self._log.info('##############################')
 
 			return [az, el]
 
@@ -132,7 +130,7 @@ class ROT2Prog:
 		"""
 		self._log.info('##############################')
 		self._log.info('# STATUS COMMAND')
-		self._log.info('##############################\n')
+		self._log.info('##############################')
 
 		cmd = [0x57, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x1f, 0x20]
 		self._send_command(cmd)
@@ -146,7 +144,7 @@ class ROT2Prog:
 		"""
 		self._log.info('##############################')
 		self._log.info('# STOP COMMAND')
-		self._log.info('##############################\n')
+		self._log.info('##############################')
 
 		cmd = [0x57, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0f, 0x20]
 		self._send_command(cmd)
@@ -181,7 +179,7 @@ class ROT2Prog:
 		self._log.info('##############################')
 		self._log.info('# Azimuth:   ' + str(round(float(az), 2)))
 		self._log.info('# Elevation: ' + str(round(float(el), 2)))
-		self._log.info('##############################\n')
+		self._log.info('##############################')
 
 		# encode with resolution
 		H = int(self._resolution * (float(az) + 360))
@@ -246,7 +244,7 @@ class ROT2ProgSim:
 				time.sleep(self._retry)
 
 		self._resolution = resolution
-		self._log.info('ROT2Prog simulation interface opened on ' + str(self._ser.name) + '\n')
+		self._log.info('ROT2Prog simulation interface opened on ' + str(self._ser.name))
 
 		# start daemon thread to communicate on serial port
 		Thread(target = self.run, daemon = True).start()
@@ -262,7 +260,7 @@ class ROT2ProgSim:
 		"""
 		while self._keep_running:
 			command_packet = list(self._ser.read(13))
-			self._log.debug('Command packet received: ' + str(command_packet) + '\n')
+			self._log.debug('Command packet received: ' + str(command_packet))
 
 			K = command_packet[11]
 
@@ -270,11 +268,11 @@ class ROT2ProgSim:
 				if K == 0x0F:
 					self._log.info('##############################')
 					self._log.info('# STOP COMMAND')
-					self._log.info('##############################\n')
+					self._log.info('##############################')
 				elif K == 0x1F:
 					self._log.info('##############################')
 					self._log.info('# STATUS COMMAND')
-					self._log.info('##############################\n')
+					self._log.info('##############################')
 
 				# convert to byte values
 				H = "000" + str(round(float(self.az + 360), 1))
@@ -295,12 +293,12 @@ class ROT2ProgSim:
 				self._log.info('# Elevation: ' + str(float(self.el)))
 				self._log.info('# PH: ' + str(self._resolution))
 				self._log.info('# PV: ' + str(self._resolution))
-				self._log.info('##############################\n')
+				self._log.info('##############################')
 
 				self._ser.flush()
 				self._ser.write(bytearray(rsp))
 
-				self._log.debug('Response packet sent: ' + str(rsp) + '\n')
+				self._log.debug('Response packet sent: ' + str(rsp))
 			elif K == 0x2F:
 				# convert from ascii characters
 				H = (command_packet[1] * 1000) + (command_packet[2] * 100) + (command_packet[3] * 10) + command_packet[4]
@@ -315,9 +313,9 @@ class ROT2ProgSim:
 				self._log.info('##############################')
 				self._log.info('# Azimuth:   ' + str(self.az))
 				self._log.info('# Elevation: ' + str(self.el))
-				self._log.info('##############################\n')
+				self._log.info('##############################')
 			else:
-				self._log.error('Invalid command received [K = ' + str(hex(K)) + ']\n')
+				self._log.error('Invalid command received [K = ' + str(hex(K)) + ']')
 
 	def stop(self):
 		"""Stops the daemon thread running the simulator.
