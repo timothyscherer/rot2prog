@@ -36,12 +36,12 @@ if __name__ == &#39;__main__&#39;:
         debug = &#39;&#39;
         resolution = 0
 
-        while(debug not in [&#39;y&#39;, &#39;Y&#39;, &#39;n&#39;, &#39;N&#39;]):
+        while debug.lower() not in [&#39;y&#39;, &#39;n&#39;]:
                 debug = input(&#39;Run debugger? (y/n) &#39;)
 
-        if debug in [&#39;y&#39;, &#39;Y&#39;]:
+        if debug.lower() == &#39;y&#39;:
                 logging.basicConfig(level = logging.DEBUG)
-                logging.info(&#39;Running in debug mode\n&#39;)
+                print(&#39;Running in debug mode&#39;)
         else:
                 logging.basicConfig(level = logging.INFO)
 
@@ -52,7 +52,8 @@ if __name__ == &#39;__main__&#39;:
 
         sim = rot2prog.ROT2ProgSim(port, resolution)
 
-        input(&#39;PRESS ENTER TO STOP\n&#39;)
+        logging.getLogger().info(&#39;Press [Enter] to close simulator&#39;)
+        input()
         sim.stop()</code></pre>
 </details>
 </section>

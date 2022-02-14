@@ -29,49 +29,64 @@
 <pre><code class="python">import logging
 import rot2prog
 
+def help():
+        print()
+        print(&#39;ROT2Prog Live Interface Commands.&#39;)
+        print()
+        print(&#39;options:&#39;)
+        print(&#39;  help                       display this help message&#39;)
+        print(&#39;  quit                       end the program&#39;)
+        print(&#39;  stop                       send stop command&#39;)
+        print(&#39;  status                     send status command&#39;)
+        print(&#39;  set [azimuth] [elevation]  send set command with a position&#39;)
+
 if __name__ == &#39;__main__&#39;:
+        log = logging.getLogger(__name__)
+        
         debug = &#39;&#39;
 
-        while(debug not in [&#39;y&#39;, &#39;n&#39;]):
+        while debug.lower() not in [&#39;y&#39;, &#39;n&#39;]:
                 debug = input(&#39;Run debugger? (y/n) &#39;)
 
-        if(debug in [&#39;y&#39;]):
-                debug = True
+        if debug.lower() == &#39;y&#39;:
                 logging.basicConfig(level = logging.DEBUG)
-                logging.info(&#39;Running in debug mode\n&#39;)
+                print(&#39;Running in debug mode&#39;)
         else:
-                debug = False
+                logging.basicConfig(level = logging.INFO)
 
         port = input(&#39;Please enter the serial port: &#39;)
 
         rot = rot2prog.ROT2Prog(port)
-        rot._help()
+        help()
 
+        run = True
         # wait for user commands
-        while True:
-                cmd = input(&#39;&gt; &#39;)
+        while run:
+                cmd = input(&#39;\n&gt; &#39;)
                 args = cmd.split(&#39; &#39;)
 
                 try:
-                        if args[0] == &#39;stop&#39;:
+                        if args[0].lower() == &#39;stop&#39;:
                                 rsp = rot.stop()
-                                print(&#39;azimuth:   &#39; + str(rsp[0]))
-                                print(&#39;elevation: &#39; + str(rsp[1]))
-                                print()
-                        elif args[0] == &#39;status&#39;:
+                                log.info(&#39;stop return value&#39;)
+                                log.info(&#39;-&gt; az: &#39; + str(rsp[0]))
+                                log.info(&#39;-&gt; el: &#39; + str(rsp[1]))
+                        elif args[0].lower() == &#39;status&#39;:
                                 rsp = rot.status()
-                                print(&#39;azimuth:   &#39; + str(rsp[0]))
-                                print(&#39;elevation: &#39; + str(rsp[1]))
-                                print()
-                        elif args[0] == &#39;set&#39;:
+                                log.info(&#39;status return value&#39;)
+                                log.info(&#39;-&gt; az: &#39; + str(rsp[0]))
+                                log.info(&#39;-&gt; el: &#39; + str(rsp[1]))
+                        elif args[0].lower() == &#39;set&#39;:
                                 rot.set(float(args[1]), float(args[2]))
-                                if not debug:
-                                        print()
+                        elif args[0].lower() == &#39;help&#39;:
+                                help()
+                        elif args[0].lower() == &#39;quit&#39;:
+                                run = False
                         else:
                                 raise Exception
                 except:
-                        print(&#39;Invalid command!&#39;)
-                        rot._help()</code></pre>
+                        log.error(&#39;Invalid command!&#39;)
+                        help()</code></pre>
 </details>
 </section>
 <section>
@@ -79,6 +94,30 @@ if __name__ == &#39;__main__&#39;:
 <section>
 </section>
 <section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="rot2prog.utils.run.help"><code class="name flex">
+<span>def <span class="ident">help</span></span>(<span>)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def help():
+        print()
+        print(&#39;ROT2Prog Live Interface Commands.&#39;)
+        print()
+        print(&#39;options:&#39;)
+        print(&#39;  help                       display this help message&#39;)
+        print(&#39;  quit                       end the program&#39;)
+        print(&#39;  stop                       send stop command&#39;)
+        print(&#39;  status                     send status command&#39;)
+        print(&#39;  set [azimuth] [elevation]  send set command with a position&#39;)</code></pre>
+</details>
+</dd>
+</dl>
 </section>
 <section>
 </section>
@@ -92,6 +131,11 @@ if __name__ == &#39;__main__&#39;:
 <li><h3>Super-module</h3>
 <ul>
 <li><code><a title="rot2prog.utils" href="index.html">rot2prog.utils</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="rot2prog.utils.run.help" href="#rot2prog.utils.run.help">help</a></code></li>
 </ul>
 </li>
 </ul>
