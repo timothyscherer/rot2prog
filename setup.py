@@ -3,7 +3,7 @@ Build and upload to PyPi:
 
 python -m venv .venv
 ".venv/Scripts/activate"
-pip install --upgrade pip
+python -m pip install --upgrade pip
 pip install pdoc3
 pip install build
 pip install twine
@@ -23,7 +23,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
 	name = "rot2prog",
-	version = "0.0.1",
+	version = "0.0.2",
 	author = "TJ Scherer",
 	author_email = "tjtractorboy@gmail.com",
 	description = "A python interface to the Alfa ROT2Prog Controller.",
