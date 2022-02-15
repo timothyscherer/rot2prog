@@ -139,10 +139,10 @@ class ROT2Prog:
 
 		if el > self.max_el:
 			el = self.max_el
-			self._log.warning('Elevation corrected to: ' + str(round(float(az), 2)))
+			self._log.warning('Elevation corrected to: ' + str(round(float(el), 2)))
 		if el < self.min_el:
 			el = self.min_el
-			self._log.warning('Elevation corrected to: ' + str(round(float(az), 2)))
+			self._log.warning('Elevation corrected to: ' + str(round(float(el), 2)))
 
 		self._log.debug('Set command to be sent')
 		self._log.debug('-> Azimuth:   ' + str(round(float(az), 2)))
@@ -153,8 +153,8 @@ class ROT2Prog:
 		V = int(self._resolution * (float(el) + 360))
 
 		# convert to ascii characters
-		H = "000" + str(H)
-		V = "000" + str(V)
+		H = "0000" + str(H)
+		V = "0000" + str(V)
 
 		# build command
 		cmd = [
@@ -226,8 +226,8 @@ class ROT2ProgSim:
 					self._log.info('Status command received')
 
 				# convert to byte values
-				H = "000" + str(round(float(self.az + 360), 1))
-				V = "000" + str(round(float(self.el + 360), 1))
+				H = "00000" + str(round(float(self.az + 360), 1))
+				V = "00000" + str(round(float(self.el + 360), 1))
 
 				rsp = [
 					0x57,
