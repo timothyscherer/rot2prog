@@ -46,7 +46,7 @@ class ROT2Prog:
         _pulses_per_degree_lock = Lock()
         _pulses_per_degree = 1
 
-        _bounds_lock = Lock()
+        _limits_lock = Lock()
         _min_az = 0.0
         _max_az = 360.0
         _min_el = 0.0
@@ -72,8 +72,8 @@ class ROT2Prog:
 
                 # get resolution from controller
                 self.status()
-                # set the bounds to default values
-                self.set_bounds()
+                # set the limits to default values
+                self.set_limits()
 
         def _send_command(self, cmd):
                 &#34;&#34;&#34;Sends a command packet.
@@ -81,7 +81,6 @@ class ROT2Prog:
                 Args:
                     cmd (list of int): Command packet queued.
                 &#34;&#34;&#34;
-                self._ser.flush()
                 self._ser.write(bytearray(cmd))
                 self._log.debug(&#39;Command packet sent: &#39; + str(cmd))
 
@@ -162,8 +161,8 @@ class ROT2Prog:
                     az (float): Azimuth angle to turn rotator to.
                     el (float): Elevation angle to turn rotator to.
                 &#34;&#34;&#34;
-                # make sure the inputs are within bounds and correct violations
-                with self._bounds_lock:
+                # make sure the inputs are within limits and correct violations
+                with self._limits_lock:
                         if az &gt; self._max_az:
                                 az = self._max_az
                                 self._log.warning(&#39;Azimuth too large, corrected to: &#39; + str(az))
@@ -205,17 +204,17 @@ class ROT2Prog:
 
                 self._send_command(cmd)
 
-        def get_bounds(self):
-                &#34;&#34;&#34;Returns the minimum and maximum bounds for azimuth and elevation.
+        def get_limits(self):
+                &#34;&#34;&#34;Returns the minimum and maximum limits for azimuth and elevation.
                 
                 Returns:
                     (float, float, float, float): Tuple of minimum azimuth, maximum azimuth, minimum elevation, and maximum elevation.
                 &#34;&#34;&#34;
-                with self._bounds_lock:
+                with self._limits_lock:
                         return (self._min_az, self._max_az, self._min_el, self._max_el)
 
-        def set_bounds(self, min_az = -180, max_az = 540, min_el = -21, max_el = 180):
-                &#34;&#34;&#34;Sets the minimum and maximum bounds for azimuth and elevation.
+        def set_limits(self, min_az = -180, max_az = 540, min_el = -21, max_el = 180):
+                &#34;&#34;&#34;Sets the minimum and maximum limits for azimuth and elevation.
                 
                 Args:
                     min_az (int, optional): Minimum azimuth. Defaults to -180.
@@ -223,7 +222,7 @@ class ROT2Prog:
                     min_el (int, optional): Minimum elevation. Defaults to -21.
                     max_el (int, optional): Maximum elevation. Defaults to 180.
                 &#34;&#34;&#34;
-                with self._bounds_lock:
+                with self._limits_lock:
                         self._min_az = min_az
                         self._max_az = max_az
                         self._min_el = min_el
@@ -381,7 +380,7 @@ class ROT2ProgSim:
         _pulses_per_degree_lock = Lock()
         _pulses_per_degree = 1
 
-        _bounds_lock = Lock()
+        _limits_lock = Lock()
         _min_az = 0.0
         _max_az = 360.0
         _min_el = 0.0
@@ -407,8 +406,8 @@ class ROT2ProgSim:
 
                 # get resolution from controller
                 self.status()
-                # set the bounds to default values
-                self.set_bounds()
+                # set the limits to default values
+                self.set_limits()
 
         def _send_command(self, cmd):
                 &#34;&#34;&#34;Sends a command packet.
@@ -416,7 +415,6 @@ class ROT2ProgSim:
                 Args:
                     cmd (list of int): Command packet queued.
                 &#34;&#34;&#34;
-                self._ser.flush()
                 self._ser.write(bytearray(cmd))
                 self._log.debug(&#39;Command packet sent: &#39; + str(cmd))
 
@@ -497,8 +495,8 @@ class ROT2ProgSim:
                     az (float): Azimuth angle to turn rotator to.
                     el (float): Elevation angle to turn rotator to.
                 &#34;&#34;&#34;
-                # make sure the inputs are within bounds and correct violations
-                with self._bounds_lock:
+                # make sure the inputs are within limits and correct violations
+                with self._limits_lock:
                         if az &gt; self._max_az:
                                 az = self._max_az
                                 self._log.warning(&#39;Azimuth too large, corrected to: &#39; + str(az))
@@ -540,17 +538,17 @@ class ROT2ProgSim:
 
                 self._send_command(cmd)
 
-        def get_bounds(self):
-                &#34;&#34;&#34;Returns the minimum and maximum bounds for azimuth and elevation.
+        def get_limits(self):
+                &#34;&#34;&#34;Returns the minimum and maximum limits for azimuth and elevation.
                 
                 Returns:
                     (float, float, float, float): Tuple of minimum azimuth, maximum azimuth, minimum elevation, and maximum elevation.
                 &#34;&#34;&#34;
-                with self._bounds_lock:
+                with self._limits_lock:
                         return (self._min_az, self._max_az, self._min_el, self._max_el)
 
-        def set_bounds(self, min_az = -180, max_az = 540, min_el = -21, max_el = 180):
-                &#34;&#34;&#34;Sets the minimum and maximum bounds for azimuth and elevation.
+        def set_limits(self, min_az = -180, max_az = 540, min_el = -21, max_el = 180):
+                &#34;&#34;&#34;Sets the minimum and maximum limits for azimuth and elevation.
                 
                 Args:
                     min_az (int, optional): Minimum azimuth. Defaults to -180.
@@ -558,7 +556,7 @@ class ROT2ProgSim:
                     min_el (int, optional): Minimum elevation. Defaults to -21.
                     max_el (int, optional): Maximum elevation. Defaults to 180.
                 &#34;&#34;&#34;
-                with self._bounds_lock:
+                with self._limits_lock:
                         self._min_az = min_az
                         self._max_az = max_az
                         self._min_el = min_el
@@ -575,24 +573,24 @@ class ROT2ProgSim:
 </details>
 <h3>Methods</h3>
 <dl>
-<dt id="rot2prog.rot2prog.ROT2Prog.get_bounds"><code class="name flex">
-<span>def <span class="ident">get_bounds</span></span>(<span>self)</span>
+<dt id="rot2prog.rot2prog.ROT2Prog.get_limits"><code class="name flex">
+<span>def <span class="ident">get_limits</span></span>(<span>self)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Returns the minimum and maximum bounds for azimuth and elevation.</p>
+<div class="desc"><p>Returns the minimum and maximum limits for azimuth and elevation.</p>
 <h2 id="returns">Returns</h2>
 <p>(float, float, float, float): Tuple of minimum azimuth, maximum azimuth, minimum elevation, and maximum elevation.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def get_bounds(self):
-        &#34;&#34;&#34;Returns the minimum and maximum bounds for azimuth and elevation.
+<pre><code class="python">def get_limits(self):
+        &#34;&#34;&#34;Returns the minimum and maximum limits for azimuth and elevation.
         
         Returns:
             (float, float, float, float): Tuple of minimum azimuth, maximum azimuth, minimum elevation, and maximum elevation.
         &#34;&#34;&#34;
-        with self._bounds_lock:
+        with self._limits_lock:
                 return (self._min_az, self._max_az, self._min_el, self._max_el)</code></pre>
 </details>
 </dd>
@@ -643,8 +641,8 @@ class ROT2ProgSim:
             az (float): Azimuth angle to turn rotator to.
             el (float): Elevation angle to turn rotator to.
         &#34;&#34;&#34;
-        # make sure the inputs are within bounds and correct violations
-        with self._bounds_lock:
+        # make sure the inputs are within limits and correct violations
+        with self._limits_lock:
                 if az &gt; self._max_az:
                         az = self._max_az
                         self._log.warning(&#39;Azimuth too large, corrected to: &#39; + str(az))
@@ -687,11 +685,11 @@ class ROT2ProgSim:
         self._send_command(cmd)</code></pre>
 </details>
 </dd>
-<dt id="rot2prog.rot2prog.ROT2Prog.set_bounds"><code class="name flex">
-<span>def <span class="ident">set_bounds</span></span>(<span>self, min_az=-180, max_az=540, min_el=-21, max_el=180)</span>
+<dt id="rot2prog.rot2prog.ROT2Prog.set_limits"><code class="name flex">
+<span>def <span class="ident">set_limits</span></span>(<span>self, min_az=-180, max_az=540, min_el=-21, max_el=180)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Sets the minimum and maximum bounds for azimuth and elevation.</p>
+<div class="desc"><p>Sets the minimum and maximum limits for azimuth and elevation.</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>min_az</code></strong> :&ensp;<code>int</code>, optional</dt>
@@ -707,8 +705,8 @@ class ROT2ProgSim:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def set_bounds(self, min_az = -180, max_az = 540, min_el = -21, max_el = 180):
-        &#34;&#34;&#34;Sets the minimum and maximum bounds for azimuth and elevation.
+<pre><code class="python">def set_limits(self, min_az = -180, max_az = 540, min_el = -21, max_el = 180):
+        &#34;&#34;&#34;Sets the minimum and maximum limits for azimuth and elevation.
         
         Args:
             min_az (int, optional): Minimum azimuth. Defaults to -180.
@@ -716,7 +714,7 @@ class ROT2ProgSim:
             min_el (int, optional): Minimum elevation. Defaults to -21.
             max_el (int, optional): Maximum elevation. Defaults to 180.
         &#34;&#34;&#34;
-        with self._bounds_lock:
+        with self._limits_lock:
                 self._min_az = min_az
                 self._max_az = max_az
                 self._min_el = min_el
@@ -1015,10 +1013,10 @@ class ROT2ProgSim:
 <li>
 <h4><code><a title="rot2prog.rot2prog.ROT2Prog" href="#rot2prog.rot2prog.ROT2Prog">ROT2Prog</a></code></h4>
 <ul class="">
-<li><code><a title="rot2prog.rot2prog.ROT2Prog.get_bounds" href="#rot2prog.rot2prog.ROT2Prog.get_bounds">get_bounds</a></code></li>
+<li><code><a title="rot2prog.rot2prog.ROT2Prog.get_limits" href="#rot2prog.rot2prog.ROT2Prog.get_limits">get_limits</a></code></li>
 <li><code><a title="rot2prog.rot2prog.ROT2Prog.get_pulses_per_degree" href="#rot2prog.rot2prog.ROT2Prog.get_pulses_per_degree">get_pulses_per_degree</a></code></li>
 <li><code><a title="rot2prog.rot2prog.ROT2Prog.set" href="#rot2prog.rot2prog.ROT2Prog.set">set</a></code></li>
-<li><code><a title="rot2prog.rot2prog.ROT2Prog.set_bounds" href="#rot2prog.rot2prog.ROT2Prog.set_bounds">set_bounds</a></code></li>
+<li><code><a title="rot2prog.rot2prog.ROT2Prog.set_limits" href="#rot2prog.rot2prog.ROT2Prog.set_limits">set_limits</a></code></li>
 <li><code><a title="rot2prog.rot2prog.ROT2Prog.status" href="#rot2prog.rot2prog.ROT2Prog.status">status</a></code></li>
 <li><code><a title="rot2prog.rot2prog.ROT2Prog.stop" href="#rot2prog.rot2prog.ROT2Prog.stop">stop</a></code></li>
 </ul>

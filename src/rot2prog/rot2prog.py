@@ -17,7 +17,7 @@ class ROT2Prog:
 	_pulses_per_degree_lock = Lock()
 	_pulses_per_degree = 1
 
-	_bounds_lock = Lock()
+	_limits_lock = Lock()
 	_min_az = 0.0
 	_max_az = 360.0
 	_min_el = 0.0
@@ -43,8 +43,8 @@ class ROT2Prog:
 
 		# get resolution from controller
 		self.status()
-		# set the bounds to default values
-		self.set_bounds()
+		# set the limits to default values
+		self.set_limits()
 
 	def _send_command(self, cmd):
 		"""Sends a command packet.
@@ -52,7 +52,6 @@ class ROT2Prog:
 		Args:
 		    cmd (list of int): Command packet queued.
 		"""
-		self._ser.flush()
 		self._ser.write(bytearray(cmd))
 		self._log.debug('Command packet sent: ' + str(cmd))
 
@@ -133,8 +132,8 @@ class ROT2Prog:
 		    az (float): Azimuth angle to turn rotator to.
 		    el (float): Elevation angle to turn rotator to.
 		"""
-		# make sure the inputs are within bounds and correct violations
-		with self._bounds_lock:
+		# make sure the inputs are within limits and correct violations
+		with self._limits_lock:
 			if az > self._max_az:
 				az = self._max_az
 				self._log.warning('Azimuth too large, corrected to: ' + str(az))
@@ -176,17 +175,17 @@ class ROT2Prog:
 
 		self._send_command(cmd)
 
-	def get_bounds(self):
-		"""Returns the minimum and maximum bounds for azimuth and elevation.
+	def get_limits(self):
+		"""Returns the minimum and maximum limits for azimuth and elevation.
 		
 		Returns:
 		    (float, float, float, float): Tuple of minimum azimuth, maximum azimuth, minimum elevation, and maximum elevation.
 		"""
-		with self._bounds_lock:
+		with self._limits_lock:
 			return (self._min_az, self._max_az, self._min_el, self._max_el)
 
-	def set_bounds(self, min_az = -180, max_az = 540, min_el = -21, max_el = 180):
-		"""Sets the minimum and maximum bounds for azimuth and elevation.
+	def set_limits(self, min_az = -180, max_az = 540, min_el = -21, max_el = 180):
+		"""Sets the minimum and maximum limits for azimuth and elevation.
 		
 		Args:
 		    min_az (int, optional): Minimum azimuth. Defaults to -180.
@@ -194,7 +193,7 @@ class ROT2Prog:
 		    min_el (int, optional): Minimum elevation. Defaults to -21.
 		    max_el (int, optional): Maximum elevation. Defaults to 180.
 		"""
-		with self._bounds_lock:
+		with self._limits_lock:
 			self._min_az = min_az
 			self._max_az = max_az
 			self._min_el = min_el
