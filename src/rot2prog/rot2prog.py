@@ -5,11 +5,24 @@ import serial
 import time
 from threading import Lock, Thread
 
+class ReadTimeout(Exception):
+
+	"""A serial read timed out.
+	"""
+	
+	pass
+
+class PacketError(Exception):
+
+	"""A received packet contained an error.
+	"""
+	
+	pass
+
 class ROT2Prog:
 
 	"""Sends commands and receives responses from the ROT2Prog controller.
 	"""
-
 	_log = logging.getLogger(__name__)
 
 	_ser = None
@@ -28,7 +41,7 @@ class ROT2Prog:
 		
 		Args:
 		    port (str): Name of serial port to connect to.
-		    timeout (int, optional): Worst case response time of the controller.
+		    timeout (int, optional): Maximum response time from the controller.
 		"""
 		# open serial port
 		self._ser = serial.Serial(
@@ -37,12 +50,16 @@ class ROT2Prog:
 			bytesize = 8,
 			parity = 'N',
 			stopbits = 1,
-			timeout = timeout)
+			timeout = timeout,
+			inter_byte_timeout = 0.1) # inter_byte_timeout allows continued operation after a bad packet
 
-		self._log.info('ROT2Prog interface opened on ' + str(self._ser.name))
+		self._log.info('ROT2Prog interface opened on ' + str(self._ser.name) + ' with ' + str(timeout) + "s timeout")
 
 		# get resolution from controller
-		self.status()
+		try:
+			self.status()
+		except Exception as e:
+			self._log.critical('Failed to get status from controller (' + str(e) + ')')
 		# set the limits to default values
 		self.set_limits()
 
@@ -59,18 +76,21 @@ class ROT2Prog:
 		"""Receives a response packet.
 		
 		Returns:
-		    float: Azimuth and elevation.
+		    az (float), el (float): Tuple of current azimuth and elevation.
+		
+		Raises:
+		    PacketError: The response packet is incomplete or contains bad values.
+		    ReadTimeout: The controller was unresponsive.
 		"""
 		# read with timeout
 		response_packet = list(self._ser.read(12))
 
 		# attempt to receive 12 bytes, the length of response packet
-		if len(response_packet) != 12:
-			if len(response_packet) == 0:
-				self._log.error('Response timed out')
-			else:
-				self._log.error('Invalid response packet')
-			return [0, 0]
+		if len(response_packet) == 0:
+			raise ReadTimeout('response timed out')
+		elif len(response_packet) != 12:
+			self._log.debug('Response packet received: ' + str(list(response_packet)))
+			raise PacketError('incomplete response packet')
 		else:
 			self._log.debug('Response packet received: ' + str(list(response_packet)))
 
@@ -86,9 +106,7 @@ class ROT2Prog:
 			# check resolution value
 			valid_pulses_per_degree = [1, 2, 4]
 			if PH != PV or PH not in valid_pulses_per_degree:
-				self._log.critical('Invalid controller resolution [PH = ' + str(PH) + ', PV = ' + str(PV) + ']')
-				with self._pulses_per_degree_lock:
-					self._log.info('Resolution remaining at ' + str(self._pulses_per_degree) + ' pulses per degree')
+				raise PacketError('Invalid controller resolution received [PH = ' + str(PH) + ', PV = ' + str(PV) + ']')
 			else:
 				with self._pulses_per_degree_lock:
 					self._pulses_per_degree = PH
@@ -101,27 +119,27 @@ class ROT2Prog:
 
 			return (az, el)
 
-	def status(self):
-		"""Sends a status command to determine the current position of the rotator.
-		
-		Returns:
-		    (float, float): Tuple of current azimuth and elevation.
-		"""
-		self._log.debug('Status command queued')
-
-		cmd = [0x57, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x1f, 0x20]
-		self._send_command(cmd)
-		return self._recv_response()
-
 	def stop(self):
 		"""Sends a stop command to stop the rotator in the current position.
 		
 		Returns:
-		    (float, float): Tuple of current azimuth and elevation.
+		    az (float), el (float): Tuple of current azimuth and elevation.
 		"""
 		self._log.debug('Stop command queued')
 
 		cmd = [0x57, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0f, 0x20]
+		self._send_command(cmd)
+		return self._recv_response()
+
+	def status(self):
+		"""Sends a status command to determine the current position of the rotator.
+		
+		Returns:
+		    az (float), el (float): Tuple of current azimuth and elevation.
+		"""
+		self._log.debug('Status command queued')
+
+		cmd = [0x57, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x1f, 0x20]
 		self._send_command(cmd)
 		return self._recv_response()
 
@@ -131,22 +149,19 @@ class ROT2Prog:
 		Args:
 		    az (float): Azimuth angle to turn rotator to.
 		    el (float): Elevation angle to turn rotator to.
+		
+		Raises:
+		    ValueError: The inputs cannot be sent to the controller.
 		"""
-		# make sure the inputs are within limits and correct violations
-		with self._limits_lock:
-			if az > self._max_az:
-				az = self._max_az
-				self._log.warning('Azimuth too large, corrected to: ' + str(az))
-			if az < self._min_az:
-				az = self._min_az
-				self._log.warning('Azimuth too small, corrected to: ' + str(az))
+		# make sure the inputs are within limits
+		az = float(az)
+		el = float(el)
 
-			if el > self._max_el:
-				el = self._max_el
-				self._log.warning('Elevation too large, corrected to: ' + str(el))
-			if el < self._min_el:
-				el = self._min_el
-				self._log.warning('Elevation too small, corrected to: ' + str(el))
+		with self._limits_lock:
+			if az > self._max_az or az < self._min_az:
+				raise ValueError('Azimuth angle exceeds limits [' + str(self._min_az) + ', ' + str(self._max_az) + ']')
+			if el > self._max_el or el < self._min_el:
+				raise ValueError('Elevation angle exceeds limits [' + str(self._min_el) + ', ' + str(self._max_el) + ']')
 
 		self._log.debug('Set command queued')
 		self._log.debug('-> Azimuth:   ' + str(az))
@@ -179,7 +194,7 @@ class ROT2Prog:
 		"""Returns the minimum and maximum limits for azimuth and elevation.
 		
 		Returns:
-		    (float, float, float, float): Tuple of minimum azimuth, maximum azimuth, minimum elevation, and maximum elevation.
+		    min_az (float), max_az (float), min_el (float), max_el (float): Tuple of minimum and maximum azimuth and elevation.
 		"""
 		with self._limits_lock:
 			return (self._min_az, self._max_az, self._min_el, self._max_el)
@@ -211,10 +226,6 @@ class ROT2Prog:
 class ROT2ProgSim:
 
 	"""Receives commands and sends responses to simulate the ROT2Prog controller.
-	
-	Attributes:
-	    az (float): Current azimuth angle of rotator.
-	    el (float): Current elevation angle of rotator.
 	"""
 	
 	_log = None
@@ -223,8 +234,8 @@ class ROT2ProgSim:
 	_retry = 5
 	_keep_running = True
 
-	az = 0
-	el = 0
+	_az = 0
+	_el = 0
 	_pulses_per_degree = 0
 
 	def __init__(self, port, pulses_per_degree):
@@ -243,68 +254,72 @@ class ROT2ProgSim:
 			bytesize = 8,
 			parity = 'N',
 			stopbits = 1,
-			timeout = None)
+			timeout = None,
+			inter_byte_timeout = 0.1) # inter_byte_timeout allows continued operation after a bad packet
 
-		self._pulses_per_degree = pulses_per_degree
+		self._pulses_per_degree = int(pulses_per_degree)
 		self._log.info('ROT2Prog simulation interface opened on ' + str(self._ser.name))
 
 		# start daemon thread to communicate on serial port
-		Thread(target = self.run, daemon = True).start()
+		Thread(target = self._run, daemon = True).start()
 
-	def run(self):
+	def _run(self):
 		"""Receives command packets, parses them to update the state of the simulator, and sends response packets when necessary.
 		"""
 		while self._keep_running:
 			command_packet = list(self._ser.read(13))
-			self._log.debug('Command packet received: ' + str(command_packet))
-
-			K = command_packet[11]
-
-			if K in [0x0F, 0x1F]:
-				if K == 0x0F:
-					self._log.info('Stop command received')
-				elif K == 0x1F:
-					self._log.info('Status command received')
-
-				# convert to byte values
-				H = "00000" + str(round(float(self.az + 360), 1))
-				V = "00000" + str(round(float(self.el + 360), 1))
-
-				rsp = [
-					0x57,
-					int(H[-5]), int(H[-4]), int(H[-3]), int(H[-1]),
-					self._pulses_per_degree,
-					int(V[-5]), int(V[-4]), int(V[-3]), int(V[-1]),
-					self._pulses_per_degree,
-					0x20]
-
-				self._log.info('Response queued')
-				self._log.info('-> Azimuth:   ' + str(self.az))
-				self._log.info('-> Elevation: ' + str(self.el))
-				self._log.info('-> PH:        ' + str(self._pulses_per_degree))
-				self._log.info('-> PV:        ' + str(self._pulses_per_degree))
-
-				self._ser.flush()
-				self._ser.write(bytearray(rsp))
-
-				self._log.debug('Response packet sent: ' + str(rsp))
-			elif K == 0x2F:
-				# convert from ascii characters
-				H = (command_packet[1] * 1000) + (command_packet[2] * 100) + (command_packet[3] * 10) + command_packet[4]
-				V = (command_packet[6] * 1000) + (command_packet[7] * 100) + (command_packet[8] * 10) + command_packet[9]
-
-				# decode with resolution
-				self.az = H/self._pulses_per_degree - 360.0
-				self.el = V/self._pulses_per_degree - 360.0
-
-				self.az = float(round(self.az, 1))
-				self.el = float(round(self.el, 1))
-
-				self._log.info('Set command received')
-				self._log.info('-> Azimuth:   ' + str(self.az))
-				self._log.info('-> Elevation: ' + str(self.el))
+			if len(command_packet) != 13:
+				self._log.debug('Command packet received: ' + str(command_packet))
+				self._log.critical('Incomplete command packet')
 			else:
-				self._log.error('Invalid command received [K = ' + str(hex(K)) + ']')
+				self._log.debug('Command packet received: ' + str(command_packet))
+
+				K = command_packet[11]
+
+				if K in [0x0F, 0x1F]:
+					if K == 0x0F:
+						self._log.info('Stop command received')
+					elif K == 0x1F:
+						self._log.info('Status command received')
+
+					# convert to byte values
+					H = "00000" + str(round(float(self._az + 360), 1))
+					V = "00000" + str(round(float(self._el + 360), 1))
+
+					rsp = [
+						0x57,
+						int(H[-5]), int(H[-4]), int(H[-3]), int(H[-1]),
+						self._pulses_per_degree,
+						int(V[-5]), int(V[-4]), int(V[-3]), int(V[-1]),
+						self._pulses_per_degree,
+						0x20]
+
+					self._log.info('Response queued')
+					self._log.info('-> Azimuth:   ' + str(self._az))
+					self._log.info('-> Elevation: ' + str(self._el))
+					self._log.info('-> PH:        ' + str(self._pulses_per_degree))
+					self._log.info('-> PV:        ' + str(self._pulses_per_degree))
+
+					self._ser.write(bytearray(rsp))
+
+					self._log.debug('Response packet sent: ' + str(rsp))
+				elif K == 0x2F:
+					# convert from ascii characters
+					H = (command_packet[1] * 1000) + (command_packet[2] * 100) + (command_packet[3] * 10) + command_packet[4]
+					V = (command_packet[6] * 1000) + (command_packet[7] * 100) + (command_packet[8] * 10) + command_packet[9]
+
+					# decode with resolution
+					self._az = H/self._pulses_per_degree - 360.0
+					self._el = V/self._pulses_per_degree - 360.0
+
+					self._az = float(round(self._az, 1))
+					self._el = float(round(self._el, 1))
+
+					self._log.info('Set command received')
+					self._log.info('-> Azimuth:   ' + str(self._az))
+					self._log.info('-> Elevation: ' + str(self._el))
+				else:
+					self._log.error('Invalid command received [K = ' + str(hex(K)) + ']')
 
 	def stop(self):
 		"""Stops the daemon thread running the simulator.

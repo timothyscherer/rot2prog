@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.10.0" />
 <title>rot2prog.utils.run API documentation</title>
-<meta name="description" content="" />
+<meta name="description" content="Standalone program to manually interact with the ROT2Prog hardware." />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
 <link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
@@ -22,42 +22,36 @@
 <h1 class="title">Module <code>rot2prog.utils.run</code></h1>
 </header>
 <section id="section-intro">
+<p>Standalone program to manually interact with the ROT2Prog hardware.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">import logging
+<pre><code class="python">&#34;&#34;&#34;Standalone program to manually interact with the ROT2Prog hardware.
+&#34;&#34;&#34;
+import logging
 import rot2prog
 
 def help():
+        &#34;&#34;&#34;Displays a help message.
+        &#34;&#34;&#34;
         print()
         print(&#39;ROT2Prog Live Interface Commands.&#39;)
         print()
         print(&#39;options:&#39;)
         print(&#39;  help                       display this help message&#39;)
         print(&#39;  quit                       end the program&#39;)
-        print(&#39;  ppd                        show pulses per degree&#39;)
         print(&#39;  stop                       send stop command&#39;)
         print(&#39;  status                     send status command&#39;)
+        print(&#39;  ppd                        show pulses per degree&#39;)
         print(&#39;  set [azimuth] [elevation]  send set command with a position&#39;)
 
 if __name__ == &#39;__main__&#39;:
-        log = logging.getLogger(__name__)
-        
-        debug = &#39;&#39;
-
-        while debug.lower() not in [&#39;y&#39;, &#39;n&#39;]:
-                debug = input(&#39;Run debugger? (y/n) &#39;)
-
-        if debug.lower() == &#39;y&#39;:
-                logging.basicConfig(level = logging.DEBUG)
-                print(&#39;Running in debug mode&#39;)
-        else:
-                logging.basicConfig(level = logging.INFO)
+        logging.basicConfig(level = logging.DEBUG)
 
         port = input(&#39;Please enter the serial port: &#39;)
-
         rot = rot2prog.ROT2Prog(port)
+
         help()
 
         run = True
@@ -67,26 +61,26 @@ if __name__ == &#39;__main__&#39;:
                 args = cmd.split(&#39; &#39;)
 
                 try:
-                        if args[0].lower() == &#39;stop&#39;:
-                                rsp = rot.stop()
-                                log.info(&#39;Azimuth: &#39; + str(rsp[0]))
-                                log.info(&#39;Elevation: &#39; + str(rsp[1]))
-                        elif args[0].lower() == &#39;status&#39;:
-                                rsp = rot.status()
-                                log.info(&#39;Azimuth: &#39; + str(rsp[0]))
-                                log.info(&#39;Elevation: &#39; + str(rsp[1]))
-                        elif args[0].lower() == &#39;set&#39;:
-                                rot.set(float(args[1]), float(args[2]))
-                        elif args[0].lower() == &#39;ppd&#39;:
-                                log.info(&#39;Pulses Per Degree: &#39; + str(rot.get_pulses_per_degree()))
-                        elif args[0].lower() == &#39;help&#39;:
+                        if args[0].lower() == &#39;help&#39;:
                                 help()
                         elif args[0].lower() == &#39;quit&#39;:
                                 run = False
+                        elif args[0].lower() == &#39;stop&#39;:
+                                rsp = rot.stop()
+                                print(&#39;Azimuth: &#39; + str(rsp[0]))
+                                print(&#39;Elevation: &#39; + str(rsp[1]))
+                        elif args[0].lower() == &#39;status&#39;:
+                                rsp = rot.status()
+                                print(&#39;Azimuth: &#39; + str(rsp[0]))
+                                print(&#39;Elevation: &#39; + str(rsp[1]))
+                        elif args[0].lower() == &#39;ppd&#39;:
+                                print(&#39;Pulses Per Degree: &#39; + str(rot.get_pulses_per_degree()))
+                        elif args[0].lower() == &#39;set&#39;:
+                                rot.set(float(args[1]), float(args[2]))
                         else:
-                                raise Exception
-                except:
-                        log.error(&#39;Invalid command!&#39;)
+                                raise Exception(&#39;Invalid command!&#39;)
+                except Exception as e:
+                        print(e)
                         help()</code></pre>
 </details>
 </section>
@@ -101,21 +95,23 @@ if __name__ == &#39;__main__&#39;:
 <span>def <span class="ident">help</span></span>(<span>)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Displays a help message.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def help():
+        &#34;&#34;&#34;Displays a help message.
+        &#34;&#34;&#34;
         print()
         print(&#39;ROT2Prog Live Interface Commands.&#39;)
         print()
         print(&#39;options:&#39;)
         print(&#39;  help                       display this help message&#39;)
         print(&#39;  quit                       end the program&#39;)
-        print(&#39;  ppd                        show pulses per degree&#39;)
         print(&#39;  stop                       send stop command&#39;)
         print(&#39;  status                     send status command&#39;)
+        print(&#39;  ppd                        show pulses per degree&#39;)
         print(&#39;  set [azimuth] [elevation]  send set command with a position&#39;)</code></pre>
 </details>
 </dd>

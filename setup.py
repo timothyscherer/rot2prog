@@ -9,7 +9,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
 	name = "rot2prog",
-	version = "0.0.6",
+	version = "0.0.7",
 	author = "TJ Scherer",
 	author_email = "tjtractorboy@gmail.com",
 	description = "A python interface to the Alfa ROT2Prog Controller.",

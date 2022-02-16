@@ -46,10 +46,13 @@ if __name__ == &#39;__main__&#39;:
                 logging.basicConfig(level = logging.INFO)
 
         while resolution not in [1, 2, 4]:
-                resolution = int(input(&#39;Pulses per degree: &#39;))
+                resolution = input(&#39;Pulses per degree: &#39;)
+                try:
+                        resolution = int(resolution)
+                except ValueError:
+                        pass
 
         port = input(&#39;Please enter the serial port: &#39;)
-
         sim = rot2prog.ROT2ProgSim(port, resolution)
 
         logging.getLogger().info(&#39;Press [Enter] to close simulator&#39;)
