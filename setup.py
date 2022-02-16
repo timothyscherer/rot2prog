@@ -1,20 +1,6 @@
 '''
-Build and upload to PyPi:
-
-python -m venv .venv
-".venv/Scripts/activate"
-python -m pip install --upgrade pip
-pip install pdoc3
-pip install build
-pip install twine
-
-**update the version number**
-
-cd src
-pdoc rot2prog --html -f -o ../docs
-cd ..
-python -m build
-twine upload dist/*
+Use build.bat to build and upload to PyPi.
+Always make sure the version number is correct before building!
 '''
 import setuptools
 
