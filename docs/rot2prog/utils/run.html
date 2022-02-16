@@ -36,6 +36,7 @@ def help():
         print(&#39;options:&#39;)
         print(&#39;  help                       display this help message&#39;)
         print(&#39;  quit                       end the program&#39;)
+        print(&#39;  ppd                        show pulses per degree&#39;)
         print(&#39;  stop                       send stop command&#39;)
         print(&#39;  status                     send status command&#39;)
         print(&#39;  set [azimuth] [elevation]  send set command with a position&#39;)
@@ -68,16 +69,16 @@ if __name__ == &#39;__main__&#39;:
                 try:
                         if args[0].lower() == &#39;stop&#39;:
                                 rsp = rot.stop()
-                                log.info(&#39;stop return value&#39;)
-                                log.info(&#39;-&gt; az: &#39; + str(rsp[0]))
-                                log.info(&#39;-&gt; el: &#39; + str(rsp[1]))
+                                log.info(&#39;Azimuth: &#39; + str(rsp[0]))
+                                log.info(&#39;Elevation: &#39; + str(rsp[1]))
                         elif args[0].lower() == &#39;status&#39;:
                                 rsp = rot.status()
-                                log.info(&#39;status return value&#39;)
-                                log.info(&#39;-&gt; az: &#39; + str(rsp[0]))
-                                log.info(&#39;-&gt; el: &#39; + str(rsp[1]))
+                                log.info(&#39;Azimuth: &#39; + str(rsp[0]))
+                                log.info(&#39;Elevation: &#39; + str(rsp[1]))
                         elif args[0].lower() == &#39;set&#39;:
                                 rot.set(float(args[1]), float(args[2]))
+                        elif args[0].lower() == &#39;ppd&#39;:
+                                log.info(&#39;Pulses Per Degree: &#39; + str(rot.get_pulses_per_degree()))
                         elif args[0].lower() == &#39;help&#39;:
                                 help()
                         elif args[0].lower() == &#39;quit&#39;:
@@ -112,6 +113,7 @@ if __name__ == &#39;__main__&#39;:
         print(&#39;options:&#39;)
         print(&#39;  help                       display this help message&#39;)
         print(&#39;  quit                       end the program&#39;)
+        print(&#39;  ppd                        show pulses per degree&#39;)
         print(&#39;  stop                       send stop command&#39;)
         print(&#39;  status                     send status command&#39;)
         print(&#39;  set [azimuth] [elevation]  send set command with a position&#39;)</code></pre>

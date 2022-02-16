@@ -8,6 +8,7 @@ def help():
 	print('options:')
 	print('  help                       display this help message')
 	print('  quit                       end the program')
+	print('  ppd                        show pulses per degree')
 	print('  stop                       send stop command')
 	print('  status                     send status command')
 	print('  set [azimuth] [elevation]  send set command with a position')
@@ -40,16 +41,16 @@ if __name__ == '__main__':
 		try:
 			if args[0].lower() == 'stop':
 				rsp = rot.stop()
-				log.info('stop return value')
-				log.info('-> az: ' + str(rsp[0]))
-				log.info('-> el: ' + str(rsp[1]))
+				log.info('Azimuth: ' + str(rsp[0]))
+				log.info('Elevation: ' + str(rsp[1]))
 			elif args[0].lower() == 'status':
 				rsp = rot.status()
-				log.info('status return value')
-				log.info('-> az: ' + str(rsp[0]))
-				log.info('-> el: ' + str(rsp[1]))
+				log.info('Azimuth: ' + str(rsp[0]))
+				log.info('Elevation: ' + str(rsp[1]))
 			elif args[0].lower() == 'set':
 				rot.set(float(args[1]), float(args[2]))
+			elif args[0].lower() == 'ppd':
+				log.info('Pulses Per Degree: ' + str(rot.get_pulses_per_degree()))
 			elif args[0].lower() == 'help':
 				help()
 			elif args[0].lower() == 'quit':
