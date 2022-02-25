@@ -53,13 +53,10 @@ class ROT2Prog:
 			timeout = timeout,
 			inter_byte_timeout = 0.1) # inter_byte_timeout allows continued operation after a bad packet
 
-		self._log.info('ROT2Prog interface opened on ' + str(self._ser.name) + ' with ' + str(timeout) + "s timeout")
+		self._log.debug('\'' + str(self._ser.name) + '\' opened with ' + str(timeout) + "s timeout")
 
 		# get resolution from controller
-		try:
-			self.status()
-		except Exception as e:
-			self._log.critical('Failed to get status from controller (' + str(e) + ')')
+		self.status()
 		# set the limits to default values
 		self.set_limits()
 
@@ -106,14 +103,14 @@ class ROT2Prog:
 			# check resolution value
 			valid_pulses_per_degree = [1, 2, 4]
 			if PH != PV or PH not in valid_pulses_per_degree:
-				raise PacketError('Invalid controller resolution received [PH = ' + str(PH) + ', PV = ' + str(PV) + ']')
+				raise PacketError('Invalid controller resolution received (PH = ' + str(PH) + ', PV = ' + str(PV) + ')')
 			else:
 				with self._pulses_per_degree_lock:
 					self._pulses_per_degree = PH
 
 			self._log.debug('Received response')
-			self._log.debug('-> Azimuth:   ' + str(az))
-			self._log.debug('-> Elevation: ' + str(el))
+			self._log.debug('-> Azimuth:   ' + str(az) + '°')
+			self._log.debug('-> Elevation: ' + str(el) + '°')
 			self._log.debug('-> PH:        ' + str(PH))
 			self._log.debug('-> PV:        ' + str(PV))
 
@@ -159,13 +156,13 @@ class ROT2Prog:
 
 		with self._limits_lock:
 			if az > self._max_az or az < self._min_az:
-				raise ValueError('Azimuth angle exceeds limits [' + str(self._min_az) + ', ' + str(self._max_az) + ']')
+				raise ValueError('Azimuth of ' + str(az) + '° is out of range: [' + str(self._min_az) + '°, ' + str(self._max_az) + '°]')
 			if el > self._max_el or el < self._min_el:
-				raise ValueError('Elevation angle exceeds limits [' + str(self._min_el) + ', ' + str(self._max_el) + ']')
+				raise ValueError('Elevation of ' + str(el) + '° is out of range: [' + str(self._min_el) + '°, ' + str(self._max_el) + '°]')
 
 		self._log.debug('Set command queued')
-		self._log.debug('-> Azimuth:   ' + str(az))
-		self._log.debug('-> Elevation: ' + str(el))
+		self._log.debug('-> Azimuth:   ' + str(az) + '°')
+		self._log.debug('-> Elevation: ' + str(el) + '°')
 
 		# encode with resolution
 		with self._pulses_per_degree_lock:
@@ -295,8 +292,8 @@ class ROT2ProgSim:
 						0x20]
 
 					self._log.info('Response queued')
-					self._log.info('-> Azimuth:   ' + str(self._az))
-					self._log.info('-> Elevation: ' + str(self._el))
+					self._log.info('-> Azimuth:   ' + str(self._az) + '°')
+					self._log.info('-> Elevation: ' + str(self._el) + '°')
 					self._log.info('-> PH:        ' + str(self._pulses_per_degree))
 					self._log.info('-> PV:        ' + str(self._pulses_per_degree))
 
@@ -316,10 +313,10 @@ class ROT2ProgSim:
 					self._el = float(round(self._el, 1))
 
 					self._log.info('Set command received')
-					self._log.info('-> Azimuth:   ' + str(self._az))
-					self._log.info('-> Elevation: ' + str(self._el))
+					self._log.info('-> Azimuth:   ' + str(self._az) + '°')
+					self._log.info('-> Elevation: ' + str(self._el) + '°')
 				else:
-					self._log.error('Invalid command received [K = ' + str(hex(K)) + ']')
+					self._log.error('Invalid command received (K = ' + str(hex(K)) + ')')
 
 	def stop(self):
 		"""Stops the daemon thread running the simulator.

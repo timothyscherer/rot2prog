@@ -17,11 +17,19 @@ def help():
 	print('  ppd                        show pulses per degree')
 	print('  set [azimuth] [elevation]  send set command with a position')
 
+def connect():
+	port = input('Please enter the serial port: ')
+	try:
+		return rot2prog.ROT2Prog(port)
+	except:
+		pass
+
 if __name__ == '__main__':
 	logging.basicConfig(level = logging.DEBUG)
 
-	port = input('Please enter the serial port: ')
-	rot = rot2prog.ROT2Prog(port)
+	rot = None
+	while not rot:
+		rot = connect()
 
 	help()
 
@@ -37,13 +45,19 @@ if __name__ == '__main__':
 			elif args[0].lower() == 'quit':
 				run = False
 			elif args[0].lower() == 'stop':
-				rsp = rot.stop()
-				print('Azimuth: ' + str(rsp[0]))
-				print('Elevation: ' + str(rsp[1]))
+				try:
+					rsp = rot.stop()
+					print('Azimuth:   ' + str(rsp[0]) + '°')
+					print('Elevation: ' + str(rsp[1]) + '°')
+				except:
+					print('Failed to stop')
 			elif args[0].lower() == 'status':
-				rsp = rot.status()
-				print('Azimuth: ' + str(rsp[0]))
-				print('Elevation: ' + str(rsp[1]))
+				try:
+					rsp = rot.status()
+					print('Azimuth:   ' + str(rsp[0]) + '°')
+					print('Elevation: ' + str(rsp[1]) + '°')
+				except:
+					print('Failed to get status')
 			elif args[0].lower() == 'ppd':
 				print('Pulses Per Degree: ' + str(rot.get_pulses_per_degree()))
 			elif args[0].lower() == 'set':
