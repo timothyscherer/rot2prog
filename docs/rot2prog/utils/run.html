@@ -50,8 +50,8 @@ def connect():
         port = input(&#39;Please enter the serial port: &#39;)
         try:
                 return rot2prog.ROT2Prog(port)
-        except:
-                pass
+        except Exception as e:
+                print(e)
 
 if __name__ == &#39;__main__&#39;:
         logging.basicConfig(level = logging.DEBUG)
@@ -118,8 +118,8 @@ if __name__ == &#39;__main__&#39;:
         port = input(&#39;Please enter the serial port: &#39;)
         try:
                 return rot2prog.ROT2Prog(port)
-        except:
-                pass</code></pre>
+        except Exception as e:
+                print(e)</code></pre>
 </details>
 </dd>
 <dt id="rot2prog.utils.run.help"><code class="name flex">

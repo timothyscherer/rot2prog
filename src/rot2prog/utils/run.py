@@ -21,8 +21,8 @@ def connect():
 	port = input('Please enter the serial port: ')
 	try:
 		return rot2prog.ROT2Prog(port)
-	except:
-		pass
+	except Exception as e:
+		print(e)
 
 if __name__ == '__main__':
 	logging.basicConfig(level = logging.DEBUG)

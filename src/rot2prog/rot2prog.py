@@ -31,10 +31,6 @@ class ROT2Prog:
 	_pulses_per_degree = 1
 
 	_limits_lock = Lock()
-	_min_az = 0.0
-	_max_az = 360.0
-	_min_el = 0.0
-	_max_el = 180.0
 
 	def __init__(self, port, timeout = 5):
 		"""Creates object and opens serial connection.
@@ -60,15 +56,15 @@ class ROT2Prog:
 		# set the limits to default values
 		self.set_limits()
 
-	def _send_command(self, cmd):
+	def _send_command(self, command_packet):
 		"""Sends a command packet.
 		
 		Args:
-		    cmd (list of int): Command packet queued.
+		    command_packet (list of int): Command packet queued.
 		"""
-		self._ser.write(bytearray(cmd))
-		self._log.debug('Command packet sent: ' + str(cmd))
-
+		self._ser.write(bytearray(command_packet))
+		self._log.debug('Command packet sent: ' + str(list(map(hex, list(command_packet)))))
+		
 	def _recv_response(self):
 		"""Receives a response packet.
 		
@@ -83,14 +79,13 @@ class ROT2Prog:
 		response_packet = list(self._ser.read(12))
 
 		# attempt to receive 12 bytes, the length of response packet
-		if len(response_packet) == 0:
-			raise ReadTimeout('response timed out')
-		elif len(response_packet) != 12:
-			self._log.debug('Response packet received: ' + str(list(response_packet)))
-			raise PacketError('incomplete response packet')
+		self._log.debug('Response packet received: ' + str(list(map(hex, list(response_packet)))))
+		if len(response_packet) != 12:
+			if len(response_packet) == 0:
+				raise ReadTimeout('Response timed out')
+			else:
+				raise PacketError('Incomplete response packet')
 		else:
-			self._log.debug('Response packet received: ' + str(list(response_packet)))
-
 			# convert from byte values
 			az = (response_packet[1] * 100) + (response_packet[2] * 10) + response_packet[3] + (response_packet[4] / 10.0) - 360.0
 			el = (response_packet[6] * 100) + (response_packet[7] * 10) + response_packet[8] + (response_packet[9] / 10.0) - 360.0
@@ -156,9 +151,9 @@ class ROT2Prog:
 
 		with self._limits_lock:
 			if az > self._max_az or az < self._min_az:
-				raise ValueError('Azimuth of ' + str(az) + '° is out of range: [' + str(self._min_az) + '°, ' + str(self._max_az) + '°]')
+				raise ValueError('Azimuth of ' + str(az) + '° is out of range [' + str(self._min_az) + '°, ' + str(self._max_az) + '°]')
 			if el > self._max_el or el < self._min_el:
-				raise ValueError('Elevation of ' + str(el) + '° is out of range: [' + str(self._min_el) + '°, ' + str(self._max_el) + '°]')
+				raise ValueError('Elevation of ' + str(el) + '° is out of range [' + str(self._min_el) + '°, ' + str(self._max_el) + '°]')
 
 		self._log.debug('Set command queued')
 		self._log.debug('-> Azimuth:   ' + str(az) + '°')
@@ -178,9 +173,9 @@ class ROT2Prog:
 		# build command
 		cmd = [
 			0x57,
-			int(H[-4]), int(H[-3]), int(H[-2]), int(H[-1]),
+			int(H[-4]) + 0x30, int(H[-3]) + 0x30, int(H[-2]) + 0x30, int(H[-1]) + 0x30,
 			resolution,
-			int(V[-4]), int(V[-3]), int(V[-2]), int(V[-1]),
+			int(V[-4]) + 0x30, int(V[-3]) + 0x30, int(V[-2]) + 0x30, int(V[-1]) + 0x30,
 			resolution,
 			0x2f,
 			0x20]
@@ -265,25 +260,23 @@ class ROT2ProgSim:
 		"""
 		while self._keep_running:
 			command_packet = list(self._ser.read(13))
+			self._log.debug('Command packet received: ' + str(list(map(hex, list(command_packet)))))
 			if len(command_packet) != 13:
-				self._log.debug('Command packet received: ' + str(command_packet))
 				self._log.critical('Incomplete command packet')
 			else:
-				self._log.debug('Command packet received: ' + str(command_packet))
-
 				K = command_packet[11]
 
 				if K in [0x0F, 0x1F]:
 					if K == 0x0F:
-						self._log.info('Stop command received')
+						self._log.debug('Stop command received')
 					elif K == 0x1F:
-						self._log.info('Status command received')
+						self._log.debug('Status command received')
 
 					# convert to byte values
 					H = "00000" + str(round(float(self._az + 360), 1))
 					V = "00000" + str(round(float(self._el + 360), 1))
 
-					rsp = [
+					response_packet = [
 						0x57,
 						int(H[-5]), int(H[-4]), int(H[-3]), int(H[-1]),
 						self._pulses_per_degree,
@@ -291,19 +284,19 @@ class ROT2ProgSim:
 						self._pulses_per_degree,
 						0x20]
 
-					self._log.info('Response queued')
-					self._log.info('-> Azimuth:   ' + str(self._az) + '°')
-					self._log.info('-> Elevation: ' + str(self._el) + '°')
-					self._log.info('-> PH:        ' + str(self._pulses_per_degree))
-					self._log.info('-> PV:        ' + str(self._pulses_per_degree))
+					self._log.debug('Response queued')
+					self._log.debug('-> Azimuth:   ' + str(self._az) + '°')
+					self._log.debug('-> Elevation: ' + str(self._el) + '°')
+					self._log.debug('-> PH:        ' + hex(self._pulses_per_degree))
+					self._log.debug('-> PV:        ' + hex(self._pulses_per_degree))
 
-					self._ser.write(bytearray(rsp))
+					self._ser.write(bytearray(response_packet))
 
-					self._log.debug('Response packet sent: ' + str(rsp))
+					self._log.debug('Response packet sent: ' + str(list(map(hex, list(response_packet)))))
 				elif K == 0x2F:
 					# convert from ascii characters
-					H = (command_packet[1] * 1000) + (command_packet[2] * 100) + (command_packet[3] * 10) + command_packet[4]
-					V = (command_packet[6] * 1000) + (command_packet[7] * 100) + (command_packet[8] * 10) + command_packet[9]
+					H = ((command_packet[1] - 0x30) * 1000) + ((command_packet[2] - 0x30) * 100) + ((command_packet[3] - 0x30) * 10) + (command_packet[4] - 0x30)
+					V = ((command_packet[6] - 0x30) * 1000) + ((command_packet[7] - 0x30) * 100) + ((command_packet[8] - 0x30) * 10) + (command_packet[9] - 0x30)
 
 					# decode with resolution
 					self._az = H/self._pulses_per_degree - 360.0
@@ -312,9 +305,9 @@ class ROT2ProgSim:
 					self._az = float(round(self._az, 1))
 					self._el = float(round(self._el, 1))
 
-					self._log.info('Set command received')
-					self._log.info('-> Azimuth:   ' + str(self._az) + '°')
-					self._log.info('-> Elevation: ' + str(self._el) + '°')
+					self._log.debug('Set command received')
+					self._log.debug('-> Azimuth:   ' + str(self._az) + '°')
+					self._log.debug('-> Elevation: ' + str(self._el) + '°')
 				else:
 					self._log.error('Invalid command received (K = ' + str(hex(K)) + ')')
 

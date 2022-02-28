@@ -33,27 +33,23 @@ import logging
 import rot2prog
 
 if __name__ == &#39;__main__&#39;:
-        debug = &#39;&#39;
-        resolution = 0
+        pulses_per_degree = 0
 
-        while debug.lower() not in [&#39;y&#39;, &#39;n&#39;]:
-                debug = input(&#39;Run debugger? (y/n) &#39;)
+        # set log level
+        logging.basicConfig(level = logging.DEBUG)
 
-        if debug.lower() == &#39;y&#39;:
-                logging.basicConfig(level = logging.DEBUG)
-                print(&#39;Running in debug mode&#39;)
-        else:
-                logging.basicConfig(level = logging.INFO)
-
-        while resolution not in [1, 2, 4]:
-                resolution = input(&#39;Pulses per degree: &#39;)
-                try:
-                        resolution = int(resolution)
-                except ValueError:
-                        pass
-
+        # get serial port
         port = input(&#39;Please enter the serial port: &#39;)
-        sim = rot2prog.ROT2ProgSim(port, resolution)
+
+        # set pulses per degree
+        while pulses_per_degree not in [1, 2, 4]:
+                pulses_per_degree = input(&#39;Pulses per degree: &#39;)
+                try:
+                        pulses_per_degree = int(pulses_per_degree)
+                except ValueError:
+                        print(&#39;Please select 1, 2, or 4 pulses per degree.&#39;)
+
+        sim = rot2prog.ROT2ProgSim(port, pulses_per_degree)
 
         logging.getLogger().info(&#39;Press [Enter] to close simulator&#39;)
         input()
