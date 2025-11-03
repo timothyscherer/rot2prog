@@ -96,7 +96,7 @@ class ROT2Prog:
 			el = float(round(el, 1))
 
 			# check resolution value
-			valid_pulses_per_degree = [1, 2, 4]
+			valid_pulses_per_degree = [1, 2, 4, 10]
 			if PH != PV or PH not in valid_pulses_per_degree:
 				raise PacketError('Invalid controller resolution received (PH = ' + str(PH) + ', PV = ' + str(PV) + ')')
 			else:
