@@ -72,7 +72,7 @@ el.replaceWith(d);
 </dd>
 <dt id="rot2prog.rot2prog.ROT2Prog"><code class="flex name class">
 <span>class <span class="ident">ROT2Prog</span></span>
-<span>(</span><span>port, timeout=5)</span>
+<span>(</span><span>port, timeout=5, baudrate=600)</span>
 </code></dt>
 <dd>
 <details class="source">
@@ -92,17 +92,18 @@ el.replaceWith(d);
 
         _limits_lock = Lock()
 
-        def __init__(self, port, timeout = 5):
+        def __init__(self, port, timeout = 5, baudrate = 600):
                 &#34;&#34;&#34;Creates object and opens serial connection.
                 
                 Args:
                     port (str): Name of serial port to connect to.
+                    baudrate (int, optional): Communication speed. Defaults to 600.
                     timeout (int, optional): Maximum response time from the controller.
                 &#34;&#34;&#34;
                 # open serial port
                 self._ser = serial.Serial(
                         port = port,
-                        baudrate = 600,
+                        baudrate = baudrate,
                         bytesize = 8,
                         parity = &#39;N&#39;,
                         stopbits = 1,
@@ -281,6 +282,8 @@ el.replaceWith(d);
 <dl>
 <dt><strong><code>port</code></strong> :&ensp;<code>str</code></dt>
 <dd>Name of serial port to connect to.</dd>
+<dt><strong><code>baudrate</code></strong> :&ensp;<code>int</code>, optional</dt>
+<dd>Communication speed. Defaults to 600.</dd>
 <dt><strong><code>timeout</code></strong> :&ensp;<code>int</code>, optional</dt>
 <dd>Maximum response time from the controller.</dd>
 </dl></div>
