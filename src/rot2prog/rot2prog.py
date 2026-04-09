@@ -32,17 +32,18 @@ class ROT2Prog:
 
 	_limits_lock = Lock()
 
-	def __init__(self, port, timeout = 5):
+	def __init__(self, port, timeout = 5, baudrate = 600):
 		"""Creates object and opens serial connection.
 		
 		Args:
 		    port (str): Name of serial port to connect to.
+		    baudrate (int, optional): Communication speed. Defaults to 600.
 		    timeout (int, optional): Maximum response time from the controller.
 		"""
 		# open serial port
 		self._ser = serial.Serial(
 			port = port,
-			baudrate = 600,
+			baudrate = baudrate,
 			bytesize = 8,
 			parity = 'N',
 			stopbits = 1,
